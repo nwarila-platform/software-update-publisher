@@ -1,0 +1,56 @@
+# Release hygiene is detection-only here: repo rulesets block GITHUB_TOKEN from
+# pushing to main or force-updating protected floating tags. Maintainers advance
+# vX/vX.Y and bump .github/scripts/.version manually when the drift guard fails.
+name: Auto Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Determine next version
+        id: version
+        shell: bash
+        run: |
+          LATEST=$(git tag --sort=-v:refname --list 'v[0-9]*.[0-9]*.[0-9]*' | head -1)
+          if [ -z "$LATEST" ]; then
+            echo "tag=v1.0.0" >> "$GITHUB_OUTPUT"
+          else
+            if [[ ! "$LATEST" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+              echo "::error::Latest release tag has an unsupported format: $LATEST"
+              exit 1
+            fi
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+            echo "tag=v${MAJOR}.${MINOR}.$((PATCH + 1))" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Resolved next version: $(cat "$GITHUB_OUTPUT" | grep tag)"
+
+      - name: Create release tag
+        shell: bash
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          git tag "$tag" HEAD
+          git push origin "refs/tags/${tag}"
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --verify-tag \
+            --title "${{ steps.version.outputs.tag }}" \
+            --generate-notes

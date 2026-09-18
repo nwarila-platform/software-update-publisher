@@ -1,0 +1,109 @@
+name: Self Update
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to sync (blank = latest)"
+        required: false
+  workflow_call:
+    inputs:
+      tag:
+        description: "Release tag to sync (blank = latest)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Pull template updates
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Determine target tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            tag=$(gh release view --repo NWarila/python-template --json tagName --jq '.tagName')
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check current version
+        id: current
+        run: |
+          if [ -f .github/scripts/.version ]; then
+            echo "version=$(cat .github/scripts/.version)" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=none" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip if already current
+        id: skip
+        run: |
+          if [ "${{ steps.current.outputs.version }}" = "${{ steps.tag.outputs.tag }}" ]; then
+            echo "Already at ${{ steps.tag.outputs.tag }}, skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Updating from ${{ steps.current.outputs.version }} to ${{ steps.tag.outputs.tag }}"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download template release
+        if: steps.skip.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.tag.outputs.tag }}"
+          git clone --depth 1 --branch "$tag" \
+            https://github.com/NWarila/python-template.git /tmp/template
+
+      - name: Sync files from manifest
+        if: steps.skip.outputs.skip == 'false'
+        run: |
+          python3 /tmp/template/scripts/sync.py /tmp/template .
+          echo "${{ steps.tag.outputs.tag }}" > .github/scripts/.version
+
+      - name: Create pull request
+        if: steps.skip.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.tag.outputs.tag }}"
+          branch="template-sync/${tag}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$branch"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: sync template files from python-template@${tag}"
+          git push origin "$branch"
+
+          gh pr create \
+            --title "chore: template sync ${tag}" \
+            --body "$(cat <<EOF
+          ## Template Sync: ${tag}
+
+          Pulls template-managed files from [python-template@${tag}](https://github.com/NWarila/python-template/releases/tag/${tag}).
+
+          Review the changes and merge when ready.
+
+          ---
+          Automated by [self-update](.github/workflows/self-update.yml)
+          EOF
+          )"

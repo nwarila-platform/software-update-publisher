@@ -1,0 +1,22 @@
+{
+  "files": [
+    { "src": "scripts/check_lint.py",              "dest": ".github/scripts/check_lint.py",       "mode": "overwrite" },
+    { "src": "scripts/check_types.py",             "dest": ".github/scripts/check_types.py",      "mode": "overwrite" },
+    { "src": "scripts/check_tests.py",             "dest": ".github/scripts/check_tests.py",      "mode": "overwrite" },
+    { "src": "scripts/check_security.py",          "dest": ".github/scripts/check_security.py",   "mode": "overwrite" },
+    { "src": "scripts/check_spelling.py",          "dest": ".github/scripts/check_spelling.py",   "mode": "overwrite" },
+    { "src": "scripts/check_package.py",           "dest": ".github/scripts/check_package.py",    "mode": "overwrite" },
+    { "src": "scripts/qa.py",                      "dest": ".github/scripts/qa.py",               "mode": "overwrite" },
+    { "src": "scripts/sync.py",                    "dest": ".github/scripts/sync.py",             "mode": "overwrite" },
+    { "src": "scripts/setup.sh",                   "dest": ".github/scripts/setup.sh",            "mode": "overwrite" },
+    { "src": "scripts/setup.ps1",                  "dest": ".github/scripts/setup.ps1",           "mode": "overwrite" },
+    { "src": "tools/check_docs_layout.py",         "dest": "tools/check_docs_layout.py",          "mode": "overwrite" },
+    { "src": "tools/check_ai_residue.py",          "dest": "tools/check_ai_residue.py",           "mode": "overwrite" },
+    { "src": "tools/check_adr_schema.py",          "dest": "tools/check_adr_schema.py",           "mode": "overwrite" },
+    { "src": "reference/pre-commit-config.yaml",   "dest": ".pre-commit-config.yaml",             "mode": "overwrite" },
+    { "src": "reference/markdownlint-cli2.jsonc",  "dest": ".markdownlint-cli2.jsonc",            "mode": "overwrite" },
+    { "src": "reference/settings.json",            "dest": ".vscode/settings.json",               "mode": "overwrite" },
+    { "src": "reference/extensions.json",          "dest": ".vscode/extensions.json",             "mode": "overwrite" },
+    { "src": "reference/tasks.json",               "dest": ".vscode/tasks.json",                  "mode": "marker-preserve" }
+  ]
+}

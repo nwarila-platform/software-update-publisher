@@ -1,0 +1,44 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  // Renovate config for NWarila/python-template. This template ships reusable
+  // Python quality-gate scripts plus GitHub Actions workflows and a composite
+  // action (.github/actions/setup-python/action.yml). Renovate keeps the
+  // Actions `uses:` SHA pins in `action.yml` and `.github/workflows/` current
+  // and tracks the Python dev dependencies declared in `pyproject.toml`.
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+
+  // python-template has no requirements.txt; Python deps live in pyproject.toml
+  // (PEP 621, [project.optional-dependencies].dev), so the `pep621` manager
+  // handles them. github-actions covers both the composite action.yml and the
+  // workflows under .github/workflows/. There are no `# renovate:`-annotated
+  // pinned pip installs in the workflows, so no custom.regex manager is needed.
+  "enabledManagers": [
+    "github-actions",
+    "pep621"
+  ],
+
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "pinDigests": true,
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "deps"
+    },
+    {
+      "matchManagers": ["pep621"],
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "deps"
+    }
+  ]
+}

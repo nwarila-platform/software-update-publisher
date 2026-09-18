@@ -1,0 +1,54 @@
+**
+# Allow the allowlist itself so tracked scope stays auditable.
+!/.gitignore
+
+# Allow git attributes so normalization rules stay versioned.
+!/.gitattributes
+
+# Allow core project configuration and documentation.
+!/pyproject.toml
+!/LICENSE
+!/README.md
+!/uv.lock
+!/.markdownlint-cli2.jsonc
+!/.pre-commit-config.yaml
+
+# Allow the org-standard automation and editor directories.
+!/.github/
+!/.github/**
+!/.vscode/
+!/.vscode/**
+
+# Allow the standard Python source and test roots.
+!/src/
+!/src/**
+!/tests/
+!/tests/**
+!/scripts/
+!/scripts/**
+
+# Allow common documentation roots.
+!/docs/
+!/docs/**
+
+# Add any repo-specific tracked roots below this line.
+
+# Ignore generated artifacts even inside allowed directories.
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+coverage.json
+coverage.*
+htmlcov/
+.tmp/
+pytest-cache-files-*/

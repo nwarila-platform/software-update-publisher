@@ -1,0 +1,39 @@
+---
+title: QA and Template-Sync Flow
+---
+flowchart TD
+    subgraph python-template ["NWarila/python-template"]
+        SRC["scripts/ (canonical source)"]
+        REL["auto-release.yml\ncreates release tag"]
+        SELFUP["self-update.yml\n(nightly, pull released files)"]
+        TPLCI["template-ci.yml\nruns .github/scripts/"]
+        GHSCRIPTS[".github/scripts/\n(released copies)"]
+        MANIFEST["sync-manifest.json\n(source → dest mappings)"]
+    end
+
+    subgraph downstream ["Downstream Repo"]
+        DSCRIPTS[".github/scripts/\n(synced from release)"]
+        DSYNC["template-sync.yml\ncalls self-update.yml@v1"]
+        DCI["repo-ci.yml\ncalls python-qa.yml@v1"]
+        DPYPROJECT["pyproject.toml\n(tool config: ruff, mypy, pytest)"]
+        DLOCAL["Developer local run\nqa.py / VSCode tasks"]
+    end
+
+    subgraph GitHub_Actions ["GitHub Actions (reusable)"]
+        PYQA["python-qa.yml\nlint / types / tests / security\nspelling / package / ci-passed"]
+    end
+
+    SRC -->|"merge to main"| REL
+    REL -->|"new tag"| SELFUP
+    SELFUP -->|"reads"| MANIFEST
+    SELFUP -->|"writes"| GHSCRIPTS
+    GHSCRIPTS --> TPLCI
+
+    SELFUP -.->|"reusable via uses:"| DSYNC
+    DSYNC -->|"PR with synced files"| DSCRIPTS
+    DSCRIPTS --> DLOCAL
+    DSCRIPTS --> DCI
+
+    DCI -->|"calls"| PYQA
+    PYQA -->|"checks out caller repo\nruns .github/scripts/"| DSCRIPTS
+    DPYPROJECT -->|"tool config read at runtime"| PYQA

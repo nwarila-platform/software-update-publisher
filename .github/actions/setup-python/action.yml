@@ -1,0 +1,53 @@
+name: Setup Python environment
+description: >
+  Install a Python interpreter, create a venv via scripts/setup.sh or
+  scripts/setup.ps1, and add the venv to PATH so every subsequent step
+  uses the same isolated environment that local development does.
+
+inputs:
+  python-version:
+    description: Python version to install
+    required: false
+    default: "3.12"
+
+runs:
+  using: composite
+  steps:
+    - name: Install Python ${{ inputs.python-version }}
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: pip
+        cache-dependency-path: pyproject.toml
+
+    - name: Install uv when uv.lock is present
+      if: ${{ hashFiles('uv.lock') != '' }}
+      uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+
+    - name: Create venv and install package (Linux/macOS)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: bash .github/scripts/setup.sh
+      env:
+        PROJECT_ROOT: ${{ github.workspace }}
+
+    - name: Create venv and install package (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: .\.github\scripts\setup.ps1
+      env:
+        PROJECT_ROOT: ${{ github.workspace }}
+
+    - name: Activate venv for subsequent steps (Linux/macOS)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        echo "${GITHUB_WORKSPACE}/.venv/bin" >> "$GITHUB_PATH"
+        echo "VIRTUAL_ENV=${GITHUB_WORKSPACE}/.venv" >> "$GITHUB_ENV"
+
+    - name: Activate venv for subsequent steps (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        "$env:GITHUB_WORKSPACE\.venv\Scripts" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+        "VIRTUAL_ENV=$env:GITHUB_WORKSPACE\.venv" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8

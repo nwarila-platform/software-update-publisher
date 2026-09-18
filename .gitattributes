@@ -1,0 +1,26 @@
+# Normalize tracked text files to LF for stable diffs across platforms.
+* text=auto eol=lf
+
+# Keep markdown readable in diffs and consistently normalized.
+*.md text eol=lf diff=markdown
+
+# Keep Python and shell automation normalized for reliable review and execution.
+*.py text eol=lf
+*.sh text eol=lf
+*.ps1 text eol=lf
+
+# Keep structured config normalized so tooling behaves consistently.
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
+
+# Keep ignore and attribute files themselves normalized for portability.
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Add project-specific binary types below.
+# *.png binary
+# *.pdf binary
+# *.docx binary

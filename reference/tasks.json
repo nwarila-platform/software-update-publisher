@@ -1,0 +1,121 @@
+// Managed by NWarila/python-template — do not edit manually (template regions only).
+// Source: https://github.com/NWarila/python-template
+{
+  "version": "2.0.0",
+  "tasks": [
+    // #region Template: Setup ------------------------------------------------
+    {
+      "label": "Setup: Create venv & install",
+      "type": "shell",
+      "command": "bash",
+      "args": [".github/scripts/setup.sh"],
+      "windows": {
+        "command": "powershell",
+        "args": ["-ExecutionPolicy", "Bypass", "-File", ".github/scripts/setup.ps1"]
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    // #endregion Template: Setup
+
+    // #region Template: QA Individual ----------------------------------------
+    {
+      "label": "QA: Lint",
+      "type": "shell",
+      "command": ".venv/bin/python",
+      "args": [".github/scripts/check_lint.py"],
+      "windows": { "command": ".venv\\Scripts\\python.exe" },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "QA: Lint (fix)",
+      "type": "shell",
+      "command": ".venv/bin/python",
+      "args": [".github/scripts/check_lint.py", "--fix"],
+      "windows": { "command": ".venv\\Scripts\\python.exe" },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "QA: Type Check",
+      "type": "shell",
+      "command": ".venv/bin/python",
+      "args": [".github/scripts/check_types.py"],
+      "windows": { "command": ".venv\\Scripts\\python.exe" },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "QA: Tests",
+      "type": "shell",
+      "command": ".venv/bin/python",
+      "args": [".github/scripts/check_tests.py"],
+      "windows": { "command": ".venv\\Scripts\\python.exe" },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "QA: Security",
+      "type": "shell",
+      "command": ".venv/bin/python",
+      "args": [".github/scripts/check_security.py"],
+      "windows": { "command": ".venv\\Scripts\\python.exe" },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "QA: Spelling",
+      "type": "shell",
+      "command": ".venv/bin/python",
+      "args": [".github/scripts/check_spelling.py"],
+      "windows": { "command": ".venv\\Scripts\\python.exe" },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "QA: Spelling (fix)",
+      "type": "shell",
+      "command": ".venv/bin/python",
+      "args": [".github/scripts/check_spelling.py", "--fix"],
+      "windows": { "command": ".venv\\Scripts\\python.exe" },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "QA: Package",
+      "type": "shell",
+      "command": ".venv/bin/python",
+      "args": [".github/scripts/check_package.py"],
+      "windows": { "command": ".venv\\Scripts\\python.exe" },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    // #endregion Template: QA Individual
+
+    // #region Template: QA Composite -----------------------------------------
+    {
+      "label": "QA: All Checks",
+      "type": "shell",
+      "command": ".venv/bin/python",
+      "args": [".github/scripts/qa.py"],
+      "windows": { "command": ".venv\\Scripts\\python.exe" },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "QA: Auto-fix All",
+      "type": "shell",
+      "command": ".venv/bin/python",
+      "args": [".github/scripts/qa.py", "--fix"],
+      "windows": { "command": ".venv\\Scripts\\python.exe" },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    // #endregion Template: QA Composite
+
+    // #region Repo-specific --------------------------------------------------
+    // Add project-specific tasks here. This region is preserved during template sync.
+    // #endregion Repo-specific
+  ]
+}

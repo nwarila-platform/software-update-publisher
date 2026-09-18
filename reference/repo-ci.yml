@@ -1,0 +1,39 @@
+# Example CI workflow for a Python repo adopting NWarila/python-template.
+# Copy to .github/workflows/ci.yml and customize as needed.
+# Also add a template-sync.yml workflow that calls self-update.yml via uses:
+# to receive automatic script and config updates via pull request.
+# See README.md "Template Sync" for the snippet.
+#
+# Coverage badge: sign up at https://codecov.io and add to README:
+#   [![Coverage](https://codecov.io/gh/<owner>/<repo>/graph/badge.svg)](https://codecov.io/gh/<owner>/<repo>)
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-qa:
+    uses: NWarila/python-template/.github/workflows/python-qa.yml@v1
+    with:
+      python-min: "3.11"
+      python-max: "3.12"
+      # full-os-matrix: true       # default
+      # run-package-check: true    # default
+
+  # Add repo-specific jobs below. For example:
+  # build:
+  #   needs: [python-qa]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+  #     - run: echo "Build step here"
