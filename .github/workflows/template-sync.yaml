@@ -1,0 +1,41 @@
+name: Template Sync
+
+# Pulls the managed quality-gate scripts and shared configuration from the type-template and
+# opens a pull request when they have moved. The scripts under .github/scripts/ and the tools
+# under tools/ are owned by the template; this workflow is how they are updated, and hand-editing
+# them here would be silently reverted by the next sync.
+#
+# The reusable is pinned by SHA, but it clones a RELEASE TAG and executes that release's
+# sync script under a write token -- so the privileged code is chosen at run time unless the
+# tag is named. `tag` is therefore always supplied and never left blank, and moving it is a
+# reviewed change to this file.
+#
+# Two consequences of the reusable's own design, worth knowing before reading a stale branch:
+# it commits with the Actions token, so the pull request it opens is unsigned and triggers no
+# checks. Both must be resolved by a human before it can merge under this repository's rules.
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to sync"
+        required: true
+        default: "v1.0.6"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: template-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: NWarila/python-template/.github/workflows/self-update.yml@1a53b58ea3209c6d9f87c527814ddae1647d20fe # NWarila/python-template v1 @ 2026-09-18
+    with:
+      tag: ${{ inputs.tag || 'v1.0.6' }}

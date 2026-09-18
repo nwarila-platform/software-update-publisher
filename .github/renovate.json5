@@ -1,44 +1,25 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
 
-  // Renovate config for NWarila/python-template. This template ships reusable
-  // Python quality-gate scripts plus GitHub Actions workflows and a composite
-  // action (.github/actions/setup-python/action.yml). Renovate keeps the
-  // Actions `uses:` SHA pins in `action.yml` and `.github/workflows/` current
-  // and tracks the Python dev dependencies declared in `pyproject.toml`.
-  "extends": [
-    "config:recommended",
-    ":dependencyDashboard",
-    ":semanticCommits"
+  // Consumer configuration for nwarila-platform/software-update-publisher.
+  //
+  // Org ADR-0004 requires exactly one type-template preset in `extends`, naming the explicit
+  // preset file: Renovate resolves a bare `github>owner/repo` to `default.json`, which this
+  // template does not publish. Everything this repository does not override comes from there.
+  extends: [
+    "github>NWarila/python-template//.github/renovate.json5",
   ],
 
-  "schedule": ["before 6am on monday"],
-  "labels": ["dependencies"],
-  "prConcurrentLimit": 5,
-  "minimumReleaseAge": "7 days",
-  "internalChecksFilter": "strict",
-
-  // python-template has no requirements.txt; Python deps live in pyproject.toml
-  // (PEP 621, [project.optional-dependencies].dev), so the `pep621` manager
-  // handles them. github-actions covers both the composite action.yml and the
-  // workflows under .github/workflows/. There are no `# renovate:`-annotated
-  // pinned pip installs in the workflows, so no custom.regex manager is needed.
-  "enabledManagers": [
-    "github-actions",
-    "pep621"
-  ],
-
-  "packageRules": [
+  // Repository-specific overrides only.
+  //
+  // The tracked products this repository publishes are its PAYLOAD, not its dependencies. Their
+  // versions are discovered at run time from vendors and pinned in the consuming playbook; they
+  // must never be managed here.
+  packageRules: [
     {
-      "matchManagers": ["github-actions"],
-      "pinDigests": true,
-      "semanticCommitType": "ci",
-      "semanticCommitScope": "deps"
+      description: "Group the AWS client libraries so one pull request moves the whole surface.",
+      matchPackageNames: ["boto3", "botocore", "boto3-stubs", "botocore-stubs", "mypy-boto3-s3"],
+      groupName: "aws sdk",
     },
-    {
-      "matchManagers": ["pep621"],
-      "semanticCommitType": "chore",
-      "semanticCommitScope": "deps"
-    }
-  ]
+  ],
 }

@@ -1,0 +1,104 @@
+name: CI
+
+# The Python quality gate is not defined here. It lives once in the type-template and is called
+# by commit SHA, so adopting a new org-wide Python check is a pin bump on one line rather than a
+# diff in every repository. The governance job below is this repository's own, because the
+# template runs those gates on itself and does not expose them to consumers.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-qa:
+    permissions:
+      contents: read
+    uses: NWarila/python-template/.github/workflows/python-qa.yml@1a53b58ea3209c6d9f87c527814ddae1647d20fe # NWarila/python-template v1 @ 2026-09-18
+    with:
+      python-min: "3.11"
+      python-max: "3.14"
+
+  governance:
+    name: Governance gates
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # check_ai_residue and check_adr_schema compare against the base branch, so the
+          # history they diff must be present.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch pull request base
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
+      - name: Validate docs layout
+        run: python tools/check_docs_layout.py
+
+      - name: Validate attribution residue
+        run: python tools/check_ai_residue.py
+        env:
+          AI_RESIDUE_BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+
+      - name: Validate workflow definitions
+        # Deleting the template's own CI removed this gate, and the shared Python gate does not
+        # lint workflows -- so it is re-added here, because this repository authors four of them.
+        # Installed by pinned release and verified against its published checksum, the same way
+        # the org hygiene reusable installs its own tooling.
+        env:
+          ACTIONLINT_VERSION: "1.7.7"
+          ACTIONLINT_SHA256: "023070a287cd8cccd71515fedc843f1985bf96c436b7effaecce67290e7e0757"
+        run: |
+          set -euo pipefail
+          workdir="$(mktemp -d)"
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl --fail --silent --show-error --location -o "${workdir}/${archive}" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/${archive}"
+          actual="$(sha256sum "${workdir}/${archive}" | awk '{print $1}')"
+          if [ "${ACTIONLINT_SHA256}" != "${actual}" ]; then
+            echo "error: actionlint sha256 mismatch (expected ${ACTIONLINT_SHA256}, got ${actual})" >&2
+            exit 1
+          fi
+          tar -xzf "${workdir}/${archive}" -C "${workdir}" actionlint
+          "${workdir}/actionlint" -color
+
+      - name: Validate ADR schema
+        run: python tools/check_adr_schema.py
+        env:
+          ADR_SCHEMA_BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+
+  ci-passed:
+    # The reusable publishes its own aggregate, but it reports as `python-qa / ci-passed` and
+    # covers only the shared gate. A ruleset needs one context that also covers this repository's
+    # governance job, so it is aggregated here.
+    name: ci-passed
+    runs-on: ubuntu-latest
+    needs: [python-qa, governance]
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - name: Verify every required job passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS"
+          echo "$RESULTS" | grep -q '"result": *"failure"' && exit 1
+          echo "$RESULTS" | grep -q '"result": *"cancelled"' && exit 1
+          exit 0
