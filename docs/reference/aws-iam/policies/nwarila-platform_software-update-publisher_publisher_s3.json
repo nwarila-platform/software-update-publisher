@@ -1,0 +1,69 @@
+{
+  "Statement": [
+    {
+      "Action": "s3:PutObject",
+      "Condition": {
+        "Null": {
+          "s3:if-none-match": "false"
+        },
+        "StringEquals": {
+          "aws:ResourceAccount": "<account-id>"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::<account-id>-apprepo/*",
+      "Sid": "CreateNewArtifactsOnlyNeverOverwrite"
+    },
+    {
+      "Action": "s3:PutObject",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceAccount": "<account-id>"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::<account-id>-apprepo/_catalog/index.json",
+        "arn:aws:s3:::<account-id>-apprepo/_catalog/index.md"
+      ],
+      "Sid": "RewriteOnlyTheCatalogIndex"
+    },
+    {
+      "Action": "s3:GetObject",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceAccount": "<account-id>"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::<account-id>-apprepo/*",
+      "Sid": "ReadBackWhatWasJustWritten"
+    },
+    {
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceAccount": "<account-id>"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::<account-id>-apprepo",
+      "Sid": "InventoryTheRepositoryToBuildTheCatalog"
+    },
+    {
+      "Action": "s3:AbortMultipartUpload",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceAccount": "<account-id>"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::<account-id>-apprepo/*",
+      "Sid": "AbortAStalledMultipartUpload"
+    }
+  ],
+  "Version": "2012-10-17"
+}
