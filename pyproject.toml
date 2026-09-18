@@ -37,7 +37,7 @@ dev = [
 ]
 
 [project.scripts]
-software-update-publisher = "software_update_publisher.main:main"
+software-update-publisher = "software_update_publisher.cli:main"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
@@ -66,6 +66,12 @@ select = ["E", "F", "W", "I", "UP", "B", "S", "SIM", "C4", "PT", "T20", "RUF"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
+
+[[tool.mypy.overrides]]
+# pymsi is pinned at a pre-release and ships no type information. The conformance test in
+# tests/test_identity.py is what actually guards its output.
+module = ["pymsi.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "-ra --import-mode=importlib --cov=src --cov-report=term-missing --cov-fail-under=90"
