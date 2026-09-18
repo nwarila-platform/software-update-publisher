@@ -1,9 +1,19 @@
 """Google Chrome, Extended Stable channel.
 
-The fleet tracks Chrome's Extended Stable train, not Stable: the pinned version is on the 152
-line while Stable has moved to 154. That choice is stated here with no default, because the two
-channels are served from different URLs and pairing one channel's version with the other's
-artifact publishes a binary that does not match its own pin.
+The channel is a DECISION recorded here, not a property read off the fleet. The consumer's pin
+``152.0.7977.76`` was released on both the Stable and the Extended Stable trains, and nothing
+in the artifact distinguishes them -- the Stable, Extended and pinned MSIs all share one
+UpgradeCode. The simpler reading of the evidence is that the pin was set when Stable was 152
+and never moved.
+
+Extended Stable is chosen because it is what an enterprise fleet wants: fewer version changes,
+at the cost of running roughly eight weeks behind the Stable train on non-security fixes.
+Security fixes are still delivered on both. If that trade is wrong for this fleet, this is the
+line to change, and it is deliberately the only place that decides it.
+
+It is stated with no default because the two channels are served from different URLs and
+pairing one channel's version with the other's artifact publishes a binary that contradicts
+its own pin.
 
 Chrome is a plain MSI. Its Property table carries the full four-field version, so the pin is
 extracted rather than transformed -- which matters here more than most, because the channel feed
@@ -54,15 +64,14 @@ def parse_feed(payload: dict[str, Any]) -> str:
 def check(fetch_json: Any) -> UpstreamCandidate:
     """Ask the channel feed what Chrome is at, and say where the artifact is.
 
-    ``advertised_version`` is what the feed says and is used to notice change. The published pin
-    comes from the downloaded file, not from here. Google publishes no digest for this URL, so
-    none is declared: the release document records that the digest was computed from the bytes
-    we fetched rather than attested by the vendor.
+    ``advertised_version`` is what the feed says and is used to notice change. It is not the
+    published version and never becomes part of an object key: for this product the two have
+    been measured to differ. Google publishes no digest for this URL, so none is declared, and
+    the release document records the digest as computed from the bytes fetched rather than
+    attested by the vendor.
     """
-    advertised = parse_feed(fetch_json(VERSION_FEED))
     return UpstreamCandidate(
-        advertised_version=advertised,
+        advertised_version=parse_feed(fetch_json(VERSION_FEED)),
         download_url=DOWNLOAD_URL,
-        file_name=f"Google-LLC_Google-Chrome_{advertised}_x64.msi",
         vendor_digest=None,
     )

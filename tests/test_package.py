@@ -183,7 +183,7 @@ class TestCli:
     ) -> None:
         monkeypatch.setenv("SUP_REPOSITORY_BUCKET", "example-apprepo")
         assert main([]) == 2
-        assert "orchestrator is not implemented" in capsys.readouterr().err
+        assert "acquiring and publishing are not implemented" in capsys.readouterr().err
 
     def test_version_flag_prints_the_package_version(self, capsys: pytest.CaptureFixture[str]) -> None:
         from software_update_publisher import __version__

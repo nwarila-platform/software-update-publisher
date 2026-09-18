@@ -63,11 +63,7 @@ class TestCheck:
     ) -> None:
         from software_update_publisher._contracts import UpstreamCandidate
 
-        candidate = UpstreamCandidate(
-            advertised_version="152.0.7977.134",
-            download_url="https://example.invalid/x.msi",
-            file_name="Google-LLC_Google-Chrome_152.0.7977.134_x64.msi",
-        )
+        candidate = UpstreamCandidate(advertised_version="152.0.7977.134", download_url="https://example.invalid/x.msi")
         _patch_products(monkeypatch, [LoadedProduct(declaration=CHROME, module=_FakeModule(candidate))], [])
         assert main(["--check"]) == 0
         assert "advertised=152.0.7977.134" in capsys.readouterr().out
@@ -77,7 +73,7 @@ class TestCheck:
     ) -> None:
         from software_update_publisher._contracts import UpstreamCandidate
 
-        ok = UpstreamCandidate(advertised_version="1.0", download_url="https://example.invalid/a", file_name="a")
+        ok = UpstreamCandidate(advertised_version="1.0", download_url="https://example.invalid/a")
         _patch_products(
             monkeypatch,
             [
@@ -111,7 +107,7 @@ class TestSingleProductEntryPoint:
     def test_a_module_can_be_run_on_its_own(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from software_update_publisher._contracts import UpstreamCandidate
 
-        candidate = UpstreamCandidate(advertised_version="1.0", download_url="https://example.invalid/a", file_name="a")
+        candidate = UpstreamCandidate(advertised_version="1.0", download_url="https://example.invalid/a")
         _patch_products(monkeypatch, [LoadedProduct(declaration=CHROME, module=_FakeModule(candidate))], [])
         assert check_one(CHROME.key) == 0
 

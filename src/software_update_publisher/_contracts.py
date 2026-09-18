@@ -11,9 +11,11 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from enum import StrEnum, auto
-from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
+from typing import Any, Generic, Protocol, TypeVar
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+
+from .validators import validate_pin_key, validate_version_component
 
 T = TypeVar("T")
 
@@ -114,6 +116,12 @@ class ProductDeclaration(FrozenContract):
     architecture: str
     """The architecture token used in the published file name."""
 
+    @field_validator("pdq_variable")
+    @classmethod
+    def _pin_key_has_the_consumer_shape(cls, value: str | None) -> str | None:
+        """A typo here is a compliance key that silently matches nothing."""
+        return None if value is None else validate_pin_key(value)
+
     @model_validator(mode="after")
     def _pin_key_only_where_a_pin_is_possible(self) -> ProductDeclaration:
         """An archive has no Add/Remove Programs identity, so it cannot name a pin."""
@@ -127,13 +135,28 @@ class UpstreamCandidate(FrozenContract):
     """What a module's ``check()`` returns: where the artifact is, and what upstream calls it."""
 
     advertised_version: str
-    """The version the vendor publishes. Used to detect change, never to pin."""
+    """The version the vendor publishes.
+
+    Used to notice that something changed, and recorded for the audit trail. Never used to
+    build an object key or a pin: the key carries the version the artifact declares, which is
+    not known until it has been downloaded and read.
+    """
 
     download_url: str
-    file_name: str
-    """The name the artifact is published under, carrying the version and architecture."""
 
     vendor_digest: str | None = None
+
+    @field_validator("advertised_version")
+    @classmethod
+    def _version_is_usable_as_a_path_component(cls, value: str) -> str:
+        """Refuse a vendor value that could not become a directory, at the boundary.
+
+        A feed that returns 'latest' or a traversal sequence is not hypothetical: it is what a
+        changed or hijacked endpoint looks like, and this is the last point before the value
+        reaches a key.
+        """
+        return validate_version_component(value)
+
     """A SHA-256 the vendor published, when it publishes one."""
 
 
@@ -144,44 +167,10 @@ class ArtifactIdentity(FrozenContract):
     publisher: str | None = None
     display_version: str | None = None
     product_code: str | None = None
+    upgrade_code: str | None = None
+    """The upgrade family, which is stable across versions where the product code is not."""
 
 
-class VersionFacts(FrozenContract):
-    """Both versions, and how the pin was arrived at."""
-
-    advertised: str
-    """What the vendor said."""
-
-    pin: str | None
-    """What Add/Remove Programs will report, and the only value a pin may be set from."""
-
-    derivation: Derivation
-    evidence: str
-    """Which reader and which field produced the pin, e.g. ``msi:ProductVersion``."""
-
-    pin_comparable: bool
-    """Whether a collection can compare this pin against installed software.
-
-    False for anything that registers nothing, even when it has a perfectly good path version.
-    This is what stops a compliance collection that silently never matches.
-    """
-
-    @model_validator(mode="after")
-    def _a_pin_must_be_a_fact_or_absent(self) -> VersionFacts:
-        """Keep the vocabulary honest: minted and none never carry a pin."""
-        if self.derivation in {Derivation.MINTED, Derivation.NONE} and self.pin is not None:
-            message = f"a {self.derivation.value} version must not present a pin"
-            raise ValueError(message)
-        if self.derivation is Derivation.EXTRACTED and self.pin is None:
-            message = "an extracted version must carry the value that was extracted"
-            raise ValueError(message)
-        if self.pin_comparable and self.pin is None:
-            message = "a pin cannot be comparable when there is no pin"
-            raise ValueError(message)
-        return self
-
-
-@runtime_checkable
 class ProductModule(Protocol):
     """What every product module provides.
 

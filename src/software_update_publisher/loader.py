@@ -16,6 +16,7 @@ from __future__ import annotations
 import importlib
 import pkgutil
 from dataclasses import dataclass
+from pathlib import Path
 from typing import cast
 
 from . import products
@@ -42,6 +43,22 @@ class LoadFailure:
     reason: str
 
 
+def _folders_that_look_like_products() -> list[str]:
+    """Directories a contributor plausibly meant as a product module.
+
+    Used to notice a folder that carries ``product.py`` but no ``__init__.py``: discovery
+    cannot see it, so without this it would simply not be tracked, with no message and no
+    failing exit code. Copying an existing module and missing the empty ``__init__.py`` is the
+    realistic path.
+    """
+    root = Path(next(iter(products.__path__)))
+    return sorted(
+        folder.name
+        for folder in root.iterdir()
+        if folder.is_dir() and (folder / "product.py").is_file() and not (folder / "__init__.py").is_file()
+    )
+
+
 def product_keys() -> list[str]:
     """Return the name of every product module, in a stable order.
 
@@ -60,12 +77,21 @@ def load_products() -> tuple[list[LoadedProduct], list[LoadFailure]]:
     a run.
     """
     loaded: list[LoadedProduct] = []
-    failures: list[LoadFailure] = []
+    failures: list[LoadFailure] = [
+        LoadFailure(key=name, reason="has product.py but no __init__.py, so it is not importable")
+        for name in _folders_that_look_like_products()
+    ]
 
     for key in product_keys():
         try:
             module = importlib.import_module(f"{products.__name__}.{key}")
-        except Exception as exc:  # one product's import must not end the run
+        except KeyboardInterrupt:
+            raise
+        except (Exception, SystemExit) as exc:
+            # SystemExit is included deliberately: a module-level sys.exit(), directly or from
+            # a vendor library's import-time check, is a defect in this repository and belongs
+            # in the report like any other. Letting it through would discard every product
+            # already loaded and exit outside this command's own code contract.
             failures.append(LoadFailure(key=key, reason=f"import failed: {exc!r}"))
             continue
 
@@ -82,13 +108,31 @@ def load_products() -> tuple[list[LoadedProduct], list[LoadFailure]]:
 
         loaded.append(LoadedProduct(declaration=declaration, module=cast(ProductModule, module)))
 
+    claimed: dict[str, str] = {}
+    for product in list(loaded):
+        pin = product.declaration.pdq_variable
+        if pin is None:
+            continue
+        if pin in claimed:
+            loaded.remove(product)
+            failures.append(
+                LoadFailure(
+                    key=product.declaration.key,
+                    reason=f"claims pin key {pin!r}, which {claimed[pin]!r} already claims",
+                )
+            )
+            continue
+        claimed[pin] = product.declaration.key
+
     return loaded, failures
 
 
 def require_products() -> list[LoadedProduct]:
     """Return every product, refusing to continue if any of them is malformed.
 
-    Used where a partial view would be misleading -- listing what this build tracks, for one.
+    For callers where a partial view would be misleading. Publishing will use it; ``--check``
+    and ``--list`` deliberately do not, because reporting the healthy products alongside the
+    broken ones is more useful than reporting nothing.
     """
     loaded, failures = load_products()
     if failures:

@@ -54,9 +54,12 @@ class TestCheck:
         candidate = check(lambda _url: _recorded())
         assert candidate.advertised_version == _recorded()["versions"][0]["version"]
 
-    def test_names_the_file_after_the_advertised_version(self) -> None:
+    def test_does_not_invent_a_published_name(self) -> None:
+        # check() returns before anything is downloaded, so the only version in hand is the
+        # one that must never build a key. The candidate carries no name at all.
         candidate = check(lambda _url: _recorded())
-        assert candidate.file_name == f"Google-LLC_Google-Chrome_{candidate.advertised_version}_x64.msi"
+        assert not hasattr(candidate, "file_name")
+        assert candidate.download_url == chrome.DOWNLOAD_URL
 
     def test_declares_no_vendor_digest_because_google_publishes_none_here(self) -> None:
         # Recorded rather than assumed: the release document must say the digest was computed

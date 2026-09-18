@@ -71,7 +71,7 @@ def _check(only: Sequence[str] | None = None) -> int:
             problems += 1
             sys.stderr.write(f"{name}: upstream check failed: {exc!r}\n")
         else:
-            sys.stdout.write(f"{name}  advertised={candidate.advertised_version}  {candidate.file_name}\n")
+            sys.stdout.write(f"{name}  advertised={candidate.advertised_version}  {candidate.download_url}\n")
 
     return EXIT_SOMETHING_FAILED if problems else EXIT_OK
 
@@ -133,12 +133,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return EXIT_CANNOT_RUN
 
-    # There is no loader yet, so there is no run to perform. Reporting success for work that
-    # did not happen is the failure mode this tool exists to remove from the process it
-    # replaces, so it says so and exits 2.
     sys.stderr.write(
         "What: this build cannot perform a publishing run. "
-        "Why: no product modules are loaded; the orchestrator is not implemented yet. "
-        "Fix: use --show-config to inspect configuration, and track the orchestrator work.\n"
+        "Why: acquiring and publishing are not implemented yet; only discovery and the "
+        "upstream check are. "
+        "Fix: use --check to see what each vendor is at, or --list to see what is tracked.\n"
     )
     return EXIT_CANNOT_RUN

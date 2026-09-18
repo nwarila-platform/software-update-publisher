@@ -3,7 +3,7 @@
 `7-zip-26.02.00.0-x64.msi` is a real tracked artifact, taken from the application repository. It
 is committed, at 2 MB, for one reason: the MSI identity reader depends on a library pinned at a
 pre-release version, and a silent change in what that library returns would produce a wrong pin
-rather than a crash. The conformance test asserts the exact five identity fields this file
+rather than a crash. The conformance test asserts the exact identity fields this file
 declares, so such a change fails the build instead of reaching a console.
 
 It is the smallest real MSI among the tracked products. Its declared identity is:

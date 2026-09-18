@@ -4,10 +4,10 @@ Watches upstream vendors for new releases of the Windows software this platform 
 verifies each artifact, publishes it to the application repository, and writes a release
 document naming every published file with its product, version, size and SHA-256.
 
-**Status: the repository is stubbed and nothing is published yet.** What exists is the
-package skeleton, the vocabulary the product-module contract is built from, the validators
-that protect a pin and an object key, and the command line. The loader, the orchestrator and
-the product modules are the next pieces.
+**Status: nothing is published yet.** What works is discovery and the upstream check: the
+loader finds product modules, each one asks its vendor what the current version is, and the
+MSI reader establishes what an artifact will register. Acquiring, verifying and publishing —
+and the release document — are the next pieces.
 
 ## Why it exists
 
@@ -43,15 +43,19 @@ pin automatically, because only it is a fact about the bytes that were published
 ```text
 src/software_update_publisher/
 ├── __main__.py     python -m software_update_publisher
-├── main.py         the command line and the exit-code contract
+├── cli.py          the command line and the exit-code contract
+├── loader.py       finds product modules and checks how they declare themselves
+├── identity.py     reads what an artifact will register in Add/Remove Programs
 ├── config.py       settings, read from the environment
 ├── _contracts.py   the data contract between a product module and the orchestrator
 ├── exceptions.py   typed failures carrying What, Why and Fix
-└── validators.py   the checks that protect a pin and an object key
+├── validators.py   the checks that protect a pin and an object key
+└── products/       one folder per tracked application
 ```
 
-Product modules will live under `src/software_update_publisher/products/<product>/`. Adding a
-tracked product means adding one of those folders; nothing outside it changes.
+Product modules live under `src/software_update_publisher/products/<product>/`. Adding a
+tracked product means adding one of those folders; nothing outside it changes, including the
+allowlist.
 
 ## Running it
 
@@ -59,11 +63,19 @@ tracked product means adding one of those folders; nothing outside it changes.
 bash .github/scripts/setup.sh
 source .venv/bin/activate
 
-software-update-publisher --show-config
+software-update-publisher --list          # what this build tracks; contacts nothing
+software-update-publisher --show-config   # resolved settings; contacts nothing
+software-update-publisher --check         # ask every vendor what it is at; publishes nothing
 ```
 
-`--show-config` contacts nothing. A real run needs `SUP_REPOSITORY_BUCKET`, which has no default
+A run that would publish needs `SUP_REPOSITORY_BUCKET`, which has no value in this repository
 because it names an account.
+
+A single product can be checked on its own:
+
+```bash
+python -m software_update_publisher.products.google_chrome
+```
 
 ## Development
 
@@ -80,7 +92,7 @@ are not edited here — the template-sync workflow updates them by pull request.
 | Code | Meaning |
 | --- | --- |
 | 0 | the run did what it set out to do; publishing nothing is a valid 0 |
-| 1 | the run completed and one or more products failed &mdash; reserved; no path returns it until the orchestrator lands |
+| 1 | the run completed and one or more products failed |
 | 2 | the run could not be performed at all |
 
 ## Licence

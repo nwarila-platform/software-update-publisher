@@ -11,9 +11,13 @@
 
 ## Traps
 
-**The channel is the whole game.** The fleet pins the Extended Stable train; Stable has moved
-several majors ahead. The download URL without its `extended` segment serves Stable and also
-answers 200, so getting this wrong is silent until someone reads the version out of the file.
+**The channel is a decision, not an observation.** The consumer's pin `152.0.7977.76` was
+released on *both* the Stable and Extended Stable trains, and no artifact distinguishes them:
+the Stable, Extended and pinned MSIs share one `UpgradeCode`. Extended Stable is chosen here
+deliberately — fewer version changes, at roughly eight weeks behind Stable on non-security
+fixes. Stable's feed is on 154 and its download URL currently serves 153; the URL without its
+`extended` segment answers 200 just the same, so getting this wrong is silent until someone
+reads the version out of the file.
 
 **The feed and the artifact disagree.** Measured 2026-09-18: the channel feed reported
 `152.0.7977.134` while the MSI it serves declared `152.0.7977.130`. The feed is used to notice
