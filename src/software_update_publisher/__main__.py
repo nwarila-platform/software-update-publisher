@@ -1,4 +1,4 @@
-"""Self-demo entry point for ``python -m sample_app``."""
+"""Entry point for ``python -m software_update_publisher``."""
 
 from __future__ import annotations
 

@@ -1,0 +1,31 @@
+name: Template Sync
+
+# Pulls the managed quality-gate scripts and shared configuration from the type-template and
+# opens a pull request when they have moved. The scripts under .github/scripts/ and the tools
+# under tools/ are owned by the template; this workflow is how they are updated, and hand-editing
+# them here would be silently reverted by the next sync.
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to sync (blank = latest)"
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: template-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: NWarila/python-template/.github/workflows/self-update.yml@1a53b58ea3209c6d9f87c527814ddae1647d20fe # v1.0.6
+    with:
+      tag: ${{ inputs.tag }}

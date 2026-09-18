@@ -1,0 +1,25 @@
+name: Repo Hygiene
+# Caller for the canonical nwarila-platform/.github reusable-repo-hygiene workflow.
+
+on:
+  pull_request:
+    branches: [main]
+  merge_group:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repo-hygiene-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hygiene:
+    permissions:
+      contents: read
+    uses: nwarila-platform/.github/.github/workflows/reusable-repo-hygiene.yaml@49b9084988d2bb64d14f0ed2a81453a3435b935d # nwarila-platform/.github main @ 2026-09-18
+    with:
+      source_ref: 49b9084988d2bb64d14f0ed2a81453a3435b935d

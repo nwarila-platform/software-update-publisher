@@ -2,31 +2,24 @@
 requires = ["setuptools>=75.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
-
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["sample_app*"]
-
-[tool.setuptools.package-data]
-"*" = ["py.typed"]
-
 [project]
-name = "python-template"
-version = "1.0.0"
-description = "Reusable Python quality-gate scripts, workflows, and reference configurations."
+name = "software-update-publisher"
+version = "0.1.0"
+description = "Monitors upstream vendors for new Windows software releases, verifies each artifact, publishes it to the application repository, and emits a release document."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 dependencies = [
-    "pydantic>=2.0,<3",
-    "pydantic-settings>=2.0,<3",
+    "boto3",
+    "httpx",
+    "pydantic",
+    "pydantic-settings",
 ]
 
 [project.optional-dependencies]
 dev = [
     "build",
+    "boto3-stubs[s3]",
     "codespell==2.4.1",
     "mypy==1.16.0",
     "pip-audit",
@@ -38,33 +31,41 @@ dev = [
     "validate-pyproject==0.24",
 ]
 
+[project.scripts]
+software-update-publisher = "software_update_publisher.main:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["software_update_publisher*"]
+
+[tool.setuptools.package-data]
+software_update_publisher = ["py.typed"]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 120
-src = ["scripts", "src", "tests"]
+src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "S", "SIM", "C4", "PT", "T20", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
-"scripts/**" = ["T20", "S603", "S607"]
 "tests/**" = ["S101"]
+"tools/**" = ["T20", "S603", "S607"]
 
 [tool.mypy]
 python_version = "3.11"
 strict = true
-explicit_package_bases = true
-mypy_path = "src"
-files = ["scripts", "src", "tests"]
-plugins = ["pydantic.mypy"]
-
-[tool.pydantic-mypy]
-init_typed = true
 
 [tool.pytest.ini_options]
-addopts = "-ra --import-mode=importlib --cov=scripts --cov=src --cov-report=term-missing --cov-fail-under=90"
+addopts = "-ra --import-mode=importlib --cov=src --cov-report=term-missing --cov-fail-under=90"
 testpaths = ["tests"]
-pythonpath = [".", "src"]
+pythonpath = ["src"]
 
 [tool.codespell]
-skip = ".venv,dist,.git,.mypy_cache,.ruff_cache,.pytest_cache,reference,.\\docs\\decision-records\\org\\*,./docs/decision-records/org/*"
+# "re-declaring" appears in a synced org decision record, which is not edited here.
+ignore-words-list = "re-declaring"
+skip = ".venv,dist,*.egg-info,.git,.mypy_cache,.pytest_cache,.ruff_cache"

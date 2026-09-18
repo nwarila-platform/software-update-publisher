@@ -1,0 +1,62 @@
+name: CI
+
+# The Python quality gate is not defined here. It lives once in the type-template and is called
+# by commit SHA, so adopting a new org-wide Python check is a pin bump on one line rather than a
+# diff in every repository. The governance job below is this repository's own, because the
+# template runs those gates on itself and does not expose them to consumers.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-qa:
+    permissions:
+      contents: read
+    uses: NWarila/python-template/.github/workflows/python-qa.yml@1a53b58ea3209c6d9f87c527814ddae1647d20fe # v1.0.6
+    with:
+      python-min: "3.11"
+      python-max: "3.14"
+
+  governance:
+    name: Governance gates
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # check_ai_residue and check_adr_schema compare against the base branch, so the
+          # history they diff must be present.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch pull request base
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
+      - name: Validate docs layout
+        run: python tools/check_docs_layout.py
+
+      - name: Validate attribution residue
+        run: python tools/check_ai_residue.py
+        env:
+          AI_RESIDUE_BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+
+      - name: Validate ADR schema
+        run: python tools/check_adr_schema.py
+        env:
+          ADR_SCHEMA_BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
