@@ -44,10 +44,15 @@
 !/tools/**
 
 # --- [ allowed: source and tests ] ---------------------------------------------------------- #
-# The product modules live under src/software_update_publisher/products/<product>/. They are
-# allowed by this same spine: a module is a normal package, so adding one adds no allowlist
-# line. What a module may NOT publish is covered by the artifact rules at the end of this file,
-# so a stray capture, download or credential inside a product folder stays ignored.
+# The product modules live under src/software_update_publisher/products/<product>/. A module is
+# a normal package, so adding one adds no allowlist line.
+#
+# Be precise about what that costs: these two entries admit any NEW file under src/ and tests/,
+# not only the ones named here, which is a scoped relaxation of the exact-file rule in org
+# ADR-0003. It is taken deliberately -- the alternative makes every tracked product an
+# allowlist edit, which is the thing the module design exists to avoid -- and it is bounded by
+# the deny rules at the end of this file, which are what actually stop an acquired artifact or
+# a credential from being published.
 !/src/
 !/src/**
 !/tests/
@@ -58,13 +63,15 @@
 !/docs/**
 
 # --- [ never tracked, even inside an allowed directory ] ------------------------------------ #
-# Build and tool output.
+# Build and tool output. Unrooted on purpose: these appear at any depth, including inside a
+# product module.
 __pycache__/
 *.py[cod]
 *$py.class
 *.egg-info/
-/build/
-/dist/
+build/
+dist/
+downloads/
 /.venv/
 /.mypy_cache/
 /.pytest_cache/
@@ -74,18 +81,73 @@ __pycache__/
 /htmlcov/
 
 # Acquired artifacts. This repository downloads vendor installers; none of them belong in git.
+# Test fixtures for the identity readers are the deliberate exception, re-admitted below.
 *.msi
+*.msp
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
 *.exe
+*.dll
 *.cab
-*.zip
-*.nupkg
-*.tar.gz
-*.rpm
 *.msu
+*.zip
+*.7z
+*.rar
+*.gz
+*.tgz
+*.tar
+*.tar.gz
+*.iso
+*.img
+*.bin
+*.nupkg
+*.jar
+*.rpm
+*.deb
+# An installer downloaded without an extension is the normal case for several vendors, so
+# staging directories are denied by name above rather than relying on a suffix.
 
 # Anything that could carry a credential or a live account identifier.
 .env
 .env.*
+.envrc
 *.pem
 *.key
 *.pfx
+*.p12
+*.jks
+*.keystore
+*credential*
+*secret*
+id_rsa
+id_ecdsa
+id_ed25519
+
+# --- [ product modules publish exactly the module template's shape ] ----------------------- #
+# A suffix rule cannot catch an installer downloaded without an extension, which is the normal
+# case for several vendors. So inside a product module the allowlist is by NAME: the five files
+# the module template defines, plus recorded upstream responses. Anything else a module folder
+# acquires stays unpublishable whatever it is called. Adding a product is still adding a
+# folder, because these names are fixed by the template rather than by the product.
+/src/software_update_publisher/products/*/*
+!/src/software_update_publisher/products/*/__init__.py
+!/src/software_update_publisher/products/*/__main__.py
+!/src/software_update_publisher/products/*/product.py
+!/src/software_update_publisher/products/*/README.md
+!/src/software_update_publisher/products/*/fixtures/
+!/src/software_update_publisher/products/*/fixtures/*.json
+!/src/software_update_publisher/products/*/fixtures/*.xml
+!/src/software_update_publisher/products/*/fixtures/*.txt
+!/src/software_update_publisher/products/*/fixtures/*.html
+
+# --- [ re-admitted: the identity readers need real artifacts to test against ] -------------- #
+# Named exactly, under one directory, so a fixture is a deliberate act and an acquired artifact
+# elsewhere in the tree still cannot be published.
+!/tests/fixtures/
+!/tests/fixtures/**/*.msi
+!/tests/fixtures/**/*.nupkg
+!/tests/fixtures/**/*.zip
+!/tests/fixtures/**/*.cab
+!/.env.example

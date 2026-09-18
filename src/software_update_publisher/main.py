@@ -10,8 +10,8 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Sequence
-from importlib.metadata import version
 
+from ._version import __version__
 from .config import load
 
 EXIT_OK = 0
@@ -23,7 +23,7 @@ def _parser() -> argparse.ArgumentParser:
         prog="software-update-publisher",
         description="Publish verified vendor software to the application repository.",
     )
-    parser.add_argument("--version", action="version", version=version("software-update-publisher"))
+    parser.add_argument("--version", action="version", version=__version__)
     parser.add_argument(
         "--show-config",
         action="store_true",
@@ -52,5 +52,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return EXIT_CANNOT_RUN
 
-    sys.stdout.write("No product modules are present yet; nothing to check.\n")
-    return EXIT_OK
+    # There is no loader yet, so there is no run to perform. Reporting success for work that
+    # did not happen is the failure mode this tool exists to remove from the process it
+    # replaces, so it says so and exits 2.
+    sys.stderr.write(
+        "What: this build cannot perform a publishing run. "
+        "Why: no product modules are loaded; the orchestrator is not implemented yet. "
+        "Fix: use --show-config to inspect configuration, and track the orchestrator work.\n"
+    )
+    return EXIT_CANNOT_RUN

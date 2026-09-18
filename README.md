@@ -4,6 +4,11 @@ Watches upstream vendors for new releases of the Windows software this platform 
 verifies each artifact, publishes it to the application repository, and writes a release
 document naming every published file with its product, version, size and SHA-256.
 
+**Status: the repository is stubbed and nothing is published yet.** What exists is the
+package skeleton, the vocabulary the product-module contract is built from, the validators
+that protect a pin and an object key, and the command line. The loader, the orchestrator and
+the product modules are the next pieces.
+
 ## Why it exists
 
 The software a fleet deploys has to be pinned to an exact version, and that pin has to be the
@@ -75,7 +80,7 @@ are not edited here — the template-sync workflow updates them by pull request.
 | Code | Meaning |
 | --- | --- |
 | 0 | the run did what it set out to do; publishing nothing is a valid 0 |
-| 1 | the run completed and one or more products failed |
+| 1 | the run completed and one or more products failed &mdash; reserved; no path returns it until the orchestrator lands |
 | 2 | the run could not be performed at all |
 
 ## Licence

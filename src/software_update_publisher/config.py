@@ -33,8 +33,6 @@ def save_defaults(path: str | Path = "software-update-publisher.defaults.env") -
     """Write a dotenv-style file naming every setting and its default."""
     destination = Path(path)
     defaults = Settings()
-    destination.write_text(
-        f"{_ENV_PREFIX}REPOSITORY_BUCKET={defaults.repository_bucket}\n{_ENV_PREFIX}REGION={defaults.region}\n",
-        encoding="utf-8",
-    )
+    lines = [f"{_ENV_PREFIX}{name.upper()}={getattr(defaults, name)}" for name in Settings.model_fields]
+    destination.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return destination

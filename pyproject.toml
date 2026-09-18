@@ -12,10 +12,10 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 dependencies = [
-    "boto3",
-    "httpx",
-    "pydantic",
-    "pydantic-settings",
+    "boto3>=1.34,<2",
+    "httpx>=0.27,<1",
+    "pydantic>=2.0,<3",
+    "pydantic-settings>=2.0,<3",
 ]
 
 [project.optional-dependencies]
@@ -59,7 +59,9 @@ select = ["E", "F", "W", "I", "UP", "B", "S", "SIM", "C4", "PT", "T20", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]
-"tools/**" = ["T20", "S603", "S607"]
+# tools/ is deliberately absent from [tool.ruff].src: those files are synced from the
+# type-template and linted there. Formatting them here would diverge from the template and be
+# reverted by the next sync.
 
 [tool.mypy]
 python_version = "3.11"
