@@ -6,10 +6,10 @@ in the artifact distinguishes them -- the Stable, Extended and pinned MSIs all s
 UpgradeCode. The simpler reading of the evidence is that the pin was set when Stable was 152
 and never moved.
 
-Extended Stable is chosen because it is what an enterprise fleet wants: fewer version changes,
-at the cost of running roughly eight weeks behind the Stable train on non-security fixes.
-Security fixes are still delivered on both. If that trade is wrong for this fleet, this is the
-line to change, and it is deliberately the only place that decides it.
+Extended Stable is the ratified choice for this fleet (2026-09-18): fewer version changes, at
+the cost of running roughly eight weeks behind the Stable train on non-security fixes. Security
+fixes are delivered on both. Revisiting that trade means changing this one line, which is
+deliberately the only place that decides it.
 
 It is stated with no default because the two channels are served from different URLs and
 pairing one channel's version with the other's artifact publishes a binary that contradicts

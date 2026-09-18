@@ -13,9 +13,9 @@
 
 **The channel is a decision, not an observation.** The consumer's pin `152.0.7977.76` was
 released on *both* the Stable and Extended Stable trains, and no artifact distinguishes them:
-the Stable, Extended and pinned MSIs share one `UpgradeCode`. Extended Stable is chosen here
-deliberately — fewer version changes, at roughly eight weeks behind Stable on non-security
-fixes. Stable's feed is on 154 and its download URL currently serves 153; the URL without its
+the Stable, Extended and pinned MSIs share one `UpgradeCode`. Extended Stable is the ratified choice for
+this fleet (2026-09-18) — fewer version changes, at roughly eight weeks behind Stable on
+non-security fixes; security fixes land on both. Stable's feed is on 154 and its download URL currently serves 153; the URL without its
 `extended` segment answers 200 just the same, so getting this wrong is silent until someone
 reads the version out of the file.
 
