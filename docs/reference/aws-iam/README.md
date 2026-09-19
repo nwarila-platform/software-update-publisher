@@ -74,9 +74,14 @@ extension, so no script extension at any depth is writable. And the explicit `De
 `~resources/*` survives any later widening of that list, which is the realistic way this would
 come back.
 
+**The deny is permanent, not provisional.** This publisher never writes helper scripts (ratified
+2026-09-18); `~resources/` belongs to the consuming repository and to operators. There is no
+future in which this identity needs to write there, so the deny costs nothing and there is no
+shared-prefix problem to design around.
+
 This is the one `Deny` in the document. The ratified model elsewhere in this account is
 Allow-only; the deviation is deliberate, because the prefix it protects is the one the fleet
-executes from.
+executes from and this identity has no business in it.
 
 ### Why a resource list rather than a bucket wildcard
 
@@ -137,10 +142,8 @@ vendor. Signature verification at publish time is the only independent check, an
 2. If that workflow ever delegates its job to a reusable workflow, `job_workflow_ref` becomes the
    *reusable*'s path and this trust stops matching. If it ever gains an `environment:`, the `sub`
    claim changes shape and stops matching too. Both are silent.
-3. The consuming repository will need its own grant to publish helper scripts under `~resources/`.
-   That grant and this policy's deny must be designed together, or two writers collide on a prefix
-   no identity here can repair.
-4. Decide which identity may remediate a bad object, because today none can.
+3. Decide which identity may remediate a bad object, because today none can. That matters more
+   here than in a bucket with versioning: a wrong byte at a right key is permanent.
 
 ## What is NOT here
 

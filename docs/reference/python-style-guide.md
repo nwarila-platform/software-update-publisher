@@ -101,5 +101,8 @@ inherits; see `docs/decision-records/template/` for what it already decides.
     tracked content. Reference documents substitute `<account-id>`.
 32. A value that becomes a path or a key is validated before it is used, even when it came from a
     vendor the run has already trusted.
-33. **Proposed.** A module is handed the machinery it needs — an HTTP client, a hasher, a
+33. **This tool publishes artifacts and nothing else.** It never writes anything the fleet
+    executes -- helper scripts belong to the repository that deploys them. The publishing
+    identity denies that prefix outright rather than relying on the code to stay well behaved.
+34. **Proposed.** A module is handed the machinery it needs — an HTTP client, a hasher, a
     publisher — and opens nothing itself. Timeout and transport policy live in one place.
