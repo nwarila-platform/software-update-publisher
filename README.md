@@ -1,8 +1,18 @@
 # software-update-publisher
 
-Watches upstream vendors for new releases of the Windows software this platform deploys,
-verifies each artifact, publishes it to the application repository, and writes a release
-document naming every published file with its product, version, size and SHA-256.
+Watches upstream vendors for new releases of the software this platform deploys, verifies each
+artifact, publishes it to the application repository, and writes a release document naming
+every published file with its product, version, size and SHA-256.
+
+**The release document is the product.** This tool is independent of everything that consumes
+it: it knows nothing about deployment systems, image builders, or what any of them currently
+run. It publishes, and it announces what it published. Consumers poll that announcement on
+their own schedule and reconcile themselves against it.
+
+That direction is deliberate and worth stating, because the obvious design is the wrong one.
+A publisher that reached into its consumers to learn what they depend on would couple itself
+to every one of them, and would have to be changed each time another arrived. A document they
+read instead costs the same for the first consumer and for the tenth.
 
 **Status: nothing is published yet.** What works is discovery and the upstream check: the
 loader finds product modules, each one asks its vendor what the current version is, and the

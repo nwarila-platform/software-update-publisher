@@ -116,16 +116,17 @@ What it cannot delete matters as much as what it can:
 - **Anything else in the bucket** — other repositories' objects, the legacy prefixes, a
   misfiled secret. Implicit deny.
 
-### The guard IAM cannot express
+### Retention is a published contract, not a consumer lookup
 
-**A version the fleet still pins must never be pruned**, whatever its age or rank. The
-repository mirror is additive, so a console that already holds the artifact keeps working —
-which is exactly what makes this dangerous. The failure appears only when a host is rebuilt,
-long after the prune and nowhere near it.
+This tool knows nothing about the systems that install what it publishes, by design. It emits a
+release document; each consumer polls that document and reconciles itself. Nothing here reaches
+into a consumer to ask what it depends on, so nothing here can spare a version on a consumer's
+behalf.
 
-No policy can express that, because the pinned set lives in the consuming repository. It is
-enforced in `retention.py`, which refuses to propose a pinned version, and the source of that
-set is an open question recorded in the tech-debt register.
+The retention window is therefore part of the published contract: it is what a consumer can rely
+on being able to fetch. A consumer reconciling within the window never sees a version disappear
+underneath it. One that ignores the document for longer than the window has stepped outside the
+contract by its own choice.
 
 ### What is deliberately absent
 

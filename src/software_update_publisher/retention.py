@@ -13,6 +13,17 @@ only the current one.
 Ordering is by publication time, not by parsing the version string. Version strings here are not
 all comparable -- some are vendor formats, some are minted by this tool -- and a comparator that
 is wrong about one product would delete the wrong artifact silently.
+
+**Retention takes no account of what any consumer holds, and cannot.** This tool knows nothing
+about the systems that install the software it publishes: it emits a release document, and each
+consumer polls that document and reconciles itself. Nothing here reaches into a consumer to ask
+what it depends on, so nothing here can spare a version on a consumer's behalf.
+
+That makes retention a published contract rather than an implementation detail. The window is
+what a consumer can rely on being able to fetch; a consumer that reconciles within it never sees
+a version disappear underneath it, and one that ignores the document for longer than the window
+is outside the contract by its own choice. The window therefore belongs in the release document,
+where the consumers that depend on it can see it.
 """
 
 from __future__ import annotations
@@ -49,16 +60,9 @@ def select_prunable(
     versions: list[PublishedVersion],
     retention: Retention,
     *,
-    pinned: frozenset[str],
     now: dt.datetime,
 ) -> RetentionDecision:
-    """Return which of *versions* may be pruned under *retention*.
-
-    ``pinned`` names versions the consuming fleet still depends on. They are never prunable
-    whatever their age or rank: the repository mirror is additive, so a console that already holds
-    one keeps working, but a host rebuilt after the prune would find nothing to install. That
-    failure appears long after the prune and nowhere near it.
-    """
+    """Return which of *versions* may be pruned under *retention*."""
     ordered = sorted(versions, key=lambda candidate: candidate.published_at, reverse=True)
     cutoff = now - dt.timedelta(days=retention.keep_days)
 
@@ -67,9 +71,7 @@ def select_prunable(
     reasons: dict[str, str] = {}
 
     for rank, candidate in enumerate(ordered, start=1):
-        if candidate.version in pinned:
-            reasons[candidate.version] = "the fleet pins this version"
-        elif rank <= retention.keep_versions:
+        if rank <= retention.keep_versions:
             reasons[candidate.version] = f"among the newest {retention.keep_versions}"
         elif candidate.published_at >= cutoff:
             reasons[candidate.version] = f"published within {retention.keep_days} days"

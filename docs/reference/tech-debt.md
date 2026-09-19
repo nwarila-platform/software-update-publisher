@@ -63,28 +63,24 @@ were incidental.
 scaffolding command once three products have proven the shape.
 **Exit criteria.** A contributor can add a product without reading an existing module.
 
-## TD-006 — The pinned-version set has no source yet
+## TD-006 — The retention window is not yet stated in the release document
 
 **Recorded** 2026-09-18.
-**Issue.** `retention.py` will not propose pruning a version the fleet pins, and takes that set as
-an argument. Nothing supplies it yet.
-**Why it is debt.** It is the guard standing between a retention policy and deleting an installer
-a rebuilt host still needs, on a bucket where a delete cannot be undone. An empty set would make
-the guard silently inert — the most dangerous possible default.
-**Correction.** Read the consuming repository's pinned variable map at run time, treat an
-unreadable source as a hard failure rather than an empty set, and record in the release document
-which versions were spared for that reason.
-**Exit criteria.** A prune run refuses to start when the pinned set cannot be read, proven by a
-test.
+**Issue.** Retention is a contract consumers depend on — the window is what they can rely on being
+able to fetch — and the release document does not yet publish it.
+**Why it is debt.** A consumer cannot tell how long it may go without reconciling. The window is
+knowable only by reading this repository, which defeats the point of a document consumers poll.
+**Correction.** Emit each product's `keep_versions` and `keep_days` in the release document.
+**Exit criteria.** A consumer can determine the window from the document alone.
 
-## TD-007 — Pruning the bucket does not reclaim the repository volume
+## TD-007 — No consumer has been told the window exists
 
 **Recorded** 2026-09-18.
-**Issue.** `Set-RepositoryContent.ps1` is deliberately additive: an object missing from the bucket
-is left on disk so a superseded version stays available for rollback. Pruning therefore reduces
-bucket cost and nothing else.
-**Why it is debt.** If the motivation for retention is disk on the console, this does not deliver
-it, and the gap is invisible until a volume fills.
-**Correction.** Decide whether the console's volume needs its own retention, which is a change to
-the consuming repository and not to this one.
-**Exit criteria.** Recorded as a decision either way, so the expectation matches the behaviour.
+**Issue.** Several repositories will poll this document — the deployment repository for Windows
+software, the image builders for their own inputs. None has been told that artifacts outside the
+window are removed.
+**Why it is debt.** Pruning is irreversible on this bucket. The first consumer to discover the
+window by losing an artifact discovers it in the worst way.
+**Correction.** State the window in the document and in this repository's README before the first
+prune runs.
+**Exit criteria.** Pruning is enabled only after the window is published.
