@@ -87,6 +87,30 @@ class Result(FrozenContract, Generic[T]):
         return self
 
 
+class Retention(FrozenContract):
+    """How many published versions of one product are kept.
+
+    Both bounds apply, and the MORE generous one wins: a version survives if it is among the
+    newest ``keep_versions``, OR if it was published within ``keep_days``. A product that ships
+    weekly therefore keeps everything from the last month rather than only three; a product
+    that ships once a year still keeps three rather than only the current one.
+    """
+
+    keep_versions: int = 3
+    keep_days: int = 30
+
+    @model_validator(mode="after")
+    def _both_bounds_must_keep_something(self) -> Retention:
+        """Zero on either bound would make the other the only rule, which is not this policy."""
+        if self.keep_versions < 1:
+            message = f"keep_versions must keep at least the current version: {self.keep_versions}"
+            raise ValueError(message)
+        if self.keep_days < 1:
+            message = f"keep_days must be at least a day: {self.keep_days}"
+            raise ValueError(message)
+        return self
+
+
 class ProductDeclaration(FrozenContract):
     """What a product module states about itself, before anything is fetched.
 
@@ -115,6 +139,13 @@ class ProductDeclaration(FrozenContract):
 
     architecture: str
     """The architecture token used in the published file name."""
+
+    retention: Retention = Retention()
+    """How many published versions of this product are kept.
+
+    Declared per product because the right answer differs: a browser that ships every few weeks
+    and a runtime that ships twice a year do not want the same rule.
+    """
 
     @field_validator("pdq_variable")
     @classmethod

@@ -46,6 +46,7 @@ administrator. Both facts shape everything below.
 | `CreateNewReleaseDocumentsOnlyNeverOverwrite` | `s3:PutObject` | The same, for the immutable per-run release documents |
 | `RewriteOnlyTheCatalogIndex` | `s3:PutObject` on exactly two keys | The catalogue index and its rendering, which carry no bytes anyone deploys. Deliberately overwritable, deliberately outside the create-only rule |
 | `RefuseTheDeploymentScriptPrefixWhateverElseIsAllowed` | **Deny** `s3:PutObject` on `~resources/*` | See below — this is the statement that matters most |
+| `PruneSupersededArtifactsOnly` | `s3:DeleteObject` | The same artifact shapes only. Not the catalogue, not the release documents, not any other prefix |
 | `ReadBackWhatWasJustWritten` | `s3:GetObject` | The same artifact shapes, plus the catalogue. Not the whole bucket |
 | `InventoryTheRepositoryToBuildTheCatalog` | `s3:ListBucket` | Knowing what the repository already holds |
 
@@ -93,9 +94,40 @@ as a bucket wildcard did, and admits nothing else.
 That is also the established idiom here: the live `…_admin_s3` policy publishes to
 `PDQ.com/*/*.exe`, not to the bucket.
 
-### What is deliberately absent
+### Deleting, and why this identity is the only one that can
 
-**No delete permission of any kind.** A superseded installer stays addressable for rollback.
+Retention is a per-product setting: a version survives if it is among the newest few OR was
+published recently, whichever bound is more generous. Without pruning, the repository grows
+without limit, so the publisher holds `s3:DeleteObject` — bounded to exactly the artifact
+shapes it may create.
+
+This makes it the **only** identity in the account that can delete from this bucket; the
+runner, reaper, admin and instance roles all evaluate to an implicit deny, confirmed by
+simulation. That concentration is deliberate. Pruning is the one operation here that cannot be
+undone, so exactly one identity should be able to perform it, under one workflow, on one
+branch.
+
+What it cannot delete matters as much as what it can:
+
+- **The release documents.** `_catalog/releases/*` is the audit trail of what was published;
+  a prune that could erase its own history is not an audit trail. Implicit deny, verified.
+- **The catalogue index.** Rewritable, never removable.
+- **`~resources/`.** Explicitly denied for delete as well as write.
+- **Anything else in the bucket** — other repositories' objects, the legacy prefixes, a
+  misfiled secret. Implicit deny.
+
+### The guard IAM cannot express
+
+**A version the fleet still pins must never be pruned**, whatever its age or rank. The
+repository mirror is additive, so a console that already holds the artifact keeps working —
+which is exactly what makes this dangerous. The failure appears only when a host is rebuilt,
+long after the prune and nowhere near it.
+
+No policy can express that, because the pinned set lives in the consuming repository. It is
+enforced in `retention.py`, which refuses to propose a pinned version, and the source of that
+set is an open question recorded in the tech-debt register.
+
+### What is deliberately absent
 
 **No bucket configuration permission.**
 

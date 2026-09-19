@@ -62,3 +62,29 @@ were incidental.
 **Correction.** Write the module template as a page under `docs/how-to/`, or generate it with a
 scaffolding command once three products have proven the shape.
 **Exit criteria.** A contributor can add a product without reading an existing module.
+
+## TD-006 — The pinned-version set has no source yet
+
+**Recorded** 2026-09-18.
+**Issue.** `retention.py` will not propose pruning a version the fleet pins, and takes that set as
+an argument. Nothing supplies it yet.
+**Why it is debt.** It is the guard standing between a retention policy and deleting an installer
+a rebuilt host still needs, on a bucket where a delete cannot be undone. An empty set would make
+the guard silently inert — the most dangerous possible default.
+**Correction.** Read the consuming repository's pinned variable map at run time, treat an
+unreadable source as a hard failure rather than an empty set, and record in the release document
+which versions were spared for that reason.
+**Exit criteria.** A prune run refuses to start when the pinned set cannot be read, proven by a
+test.
+
+## TD-007 — Pruning the bucket does not reclaim the repository volume
+
+**Recorded** 2026-09-18.
+**Issue.** `Set-RepositoryContent.ps1` is deliberately additive: an object missing from the bucket
+is left on disk so a superseded version stays available for rollback. Pruning therefore reduces
+bucket cost and nothing else.
+**Why it is debt.** If the motivation for retention is disk on the console, this does not deliver
+it, and the gap is invisible until a volume fills.
+**Correction.** Decide whether the console's volume needs its own retention, which is a change to
+the consuming repository and not to this one.
+**Exit criteria.** Recorded as a decision either way, so the expectation matches the behaviour.
