@@ -65,7 +65,8 @@ Its package definitions execute helper scripts by path:
 ```
 
 `Set-RepositoryContent.ps1` mirrors the **entire** bucket to the repository volume with no prefix
-filter and never deletes. Neither of those keys exists in the bucket yet. So a compromised
+filter — and is intended to do so deterministically, discarding whatever it holds that the
+bucket no longer carries. Neither of those keys exists in the bucket yet. So a compromised
 publishing run could create `~resources/Start-Uninstaller.ps1` — a new key, so create-only permits
 it — the next sync would carry it to the share, and every subsequent deployment would execute it
 on every target, under the deploy credential. No pin change, no pull request, no reviewer.

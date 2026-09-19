@@ -24,6 +24,12 @@ what a consumer can rely on being able to fetch; a consumer that reconciles with
 a version disappear underneath it, and one that ignores the document for longer than the window
 is outside the contract by its own choice. The window therefore belongs in the release document,
 where the consumers that depend on it can see it.
+
+The stakes are higher than bucket cost. A consumer that mirrors this repository deterministically
+-- discarding whatever it holds that the repository no longer carries -- makes the window decide
+what exists on its machines, not merely what exists here. Pruning is then a fleet-wide removal
+performed by a nightly job, which is why the decision is a pure function with its reasons
+attached rather than a side effect of the code that carries it out.
 """
 
 from __future__ import annotations

@@ -77,10 +77,12 @@ knowable only by reading this repository, which defeats the point of a document 
 
 **Recorded** 2026-09-18.
 **Issue.** Several repositories will poll this document — the deployment repository for Windows
-software, the image builders for their own inputs. None has been told that artifacts outside the
-window are removed.
-**Why it is debt.** Pruning is irreversible on this bucket. The first consumer to discover the
-window by losing an artifact discovers it in the worst way.
+software, the image builders for the inputs they manage. None has been told that artifacts outside
+the window are removed.
+**Why it is debt.** Pruning is irreversible on this bucket, and a consumer that mirrors this
+repository deterministically propagates the removal to its own machines. The first consumer to
+discover the window by losing an artifact discovers it in the worst way, on every host at once.
 **Correction.** State the window in the document and in this repository's README before the first
 prune runs.
-**Exit criteria.** Pruning is enabled only after the window is published.
+**Exit criteria.** Pruning is enabled only after the window is published and the consumers that
+poll it have been told.
