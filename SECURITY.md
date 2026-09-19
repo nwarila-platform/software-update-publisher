@@ -1,59 +1,43 @@
 # Security Policy
 
-## Reporting a vulnerability
-
-**Do not file public issues for security vulnerabilities.**
-
-### Preferred: GitHub private vulnerability reporting
-
-Use [GitHub's private vulnerability reporting](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability) to report vulnerabilities directly through the affected repository's Security tab.
-
-### Fallback contact
-
-If private vulnerability reporting is not available on the affected repository, contact the maintainer through their [GitHub profile](https://github.com/NWarila).
-
-## What to include
-
-- Description of the vulnerability
-- Steps to reproduce or proof of concept
-- Affected repository and version (or "latest default branch" if unsure)
-- Potential impact
-
-## Response timeline
-
-| Stage | Target |
-|-------|--------|
-| Initial acknowledgement | 7 business days |
-| Validation | 14 days |
-| Remediation or mitigation | 90 days when reasonable |
-
-These are targets, not guarantees. Complex issues may take longer. You will be kept informed of progress.
-
 ## Supported versions
 
-Only the latest release of `python-template` is supported. Downstream repositories that pin an older release tag should upgrade to receive fixes. The `v1` floating tag always resolves to the current supported release.
+The protected `main` branch is the only supported version. A report should identify the exact
+commit, and the release document or object key involved where one is relevant.
 
-## Scope
+## Reporting a vulnerability
 
-### In scope
+Report privately through this repository's GitHub Security Advisories. Do not open a public issue.
 
-- Vulnerabilities in scripts, workflows, or reference configurations maintained in this repository
-- Misconfigurations in GitHub Actions workflows that could lead to secret exposure or privilege escalation
-- Supply-chain weaknesses introduced by synced files that propagate to downstream repositories
+Include what you observed, how to reproduce it, and what you assess the impact to be. Expect an
+acknowledgement within a few days.
 
-### Out of scope
+## What is in scope
 
-- Vulnerabilities in third-party tools (`ruff`, `mypy`, `pytest`, `pip-audit`, etc.) — report those to the respective upstream projects
-- Social engineering attacks
-- Denial of service attacks
-- Issues in archived repositories
+This repository publishes software that a fleet then installs. The consequences of a defect here
+land on machines, so the following are in scope even where they look like configuration rather
+than code:
 
-## Coordinated disclosure
+- Anything that would let an artifact be published under a version it does not declare, or a
+  digest that does not match its bytes.
+- Anything that widens what the publishing identity can write, particularly outside the artifact
+  key shapes in [`docs/reference/aws-iam/`](docs/reference/aws-iam/).
+- Anything that would cause a key to be written outside the artifact namespace, since the
+  consuming repository mirrors the whole bucket to its deployment share and executes helper
+  scripts from it by path.
+- A product module that reaches the network, the filesystem or a credential directly, rather than
+  through the shared machinery it is handed.
+- Weaknesses in how an upstream response is trusted, including a feed that can influence a key.
 
-We follow coordinated disclosure practices. We ask that you:
+## What is not in scope
 
-- Give us reasonable time to investigate and address the issue before public disclosure
-- Act in good faith and avoid accessing or modifying data that does not belong to you
-- Do not exploit the vulnerability beyond what is necessary to demonstrate it
+- Vulnerabilities in the software this repository publishes. Report those to their vendors.
+- The deployment behaviour of the consuming repository, which has its own policy.
+- Anything requiring an attacker to already hold write access to this repository or to the AWS
+  account.
 
-We will credit researchers who report valid vulnerabilities unless they prefer to remain anonymous.
+## What must never appear in a report or an issue
+
+An AWS account identifier, a bucket name carrying one, a rendered IAM document, or any
+credential. The reference documents in this repository substitute `<account-id>` for exactly this
+reason.

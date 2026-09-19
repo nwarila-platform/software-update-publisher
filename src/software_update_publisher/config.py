@@ -1,4 +1,9 @@
-"""Frozen pydantic-settings configuration API."""
+"""Settings, read from the process environment.
+
+Nothing here has a value committed to the repository. The bucket names an account, and an
+account identifier is the one thing this repository must never carry, so it arrives at run
+time the way every other consumer of that bucket receives it.
+"""
 
 from __future__ import annotations
 

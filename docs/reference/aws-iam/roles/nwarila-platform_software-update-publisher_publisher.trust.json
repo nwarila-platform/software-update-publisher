@@ -1,0 +1,25 @@
+{
+  "Statement": [
+    {
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+          "token.actions.githubusercontent.com:job_workflow_ref": "nwarila-platform/software-update-publisher/.github/workflows/publish.yml@refs/heads/main",
+          "token.actions.githubusercontent.com:ref": "refs/heads/main",
+          "token.actions.githubusercontent.com:repository_id": "1376311697",
+          "token.actions.githubusercontent.com:sub": [
+            "repo:nwarila-platform@230745524/software-update-publisher@1376311697:ref:refs/heads/main",
+            "repo:nwarila-platform/software-update-publisher:ref:refs/heads/main"
+          ]
+        }
+      },
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<account-id>:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Sid": "GitHubActionsForSoftwareUpdatePublisherPublishWorkflow"
+    }
+  ],
+  "Version": "2012-10-17"
+}

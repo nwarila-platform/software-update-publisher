@@ -77,6 +77,15 @@ A single product can be checked on its own:
 python -m software_update_publisher.products.google_chrome
 ```
 
+## Documentation
+
+| Path | Holds |
+|---|---|
+| [`docs/reference/python-style-guide.md`](docs/reference/python-style-guide.md) | The rules this repository is written to |
+| [`docs/reference/aws-iam/`](docs/reference/aws-iam/) | The identity the publisher needs, and why it is shaped that way |
+| [`docs/reference/tech-debt.md`](docs/reference/tech-debt.md) | What is owed |
+| [`docs/decision-records/repo/`](docs/decision-records/repo/) | Why discovery walks the filesystem, and why a version is extracted rather than transformed |
+
 ## Development
 
 ```bash

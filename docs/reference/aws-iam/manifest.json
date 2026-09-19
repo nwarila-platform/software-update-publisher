@@ -1,0 +1,16 @@
+{
+  "exported": null,
+  "proposed": "2026-09-18",
+  "note": "Not yet applied, and NOT READY to apply: the trust names .github/workflows/publish.yml, which does not exist yet. Apply in the same change that adds it, then export from the live account and set 'exported'.",
+  "roles": {
+    "nwarila-platform_software-update-publisher_publisher": {
+      "attached": [
+        {
+          "name": "nwarila-platform_software-update-publisher_publisher_s3",
+          "version": null
+        }
+      ],
+      "inline": []
+    }
+  }
+}
