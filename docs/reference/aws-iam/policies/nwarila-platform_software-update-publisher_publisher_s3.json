@@ -8,17 +8,46 @@
         },
         "StringEquals": {
           "aws:ResourceAccount": "<account-id>"
+        },
+        "StringEqualsIfExists": {
+          "s3:x-amz-storage-class": "STANDARD"
         }
       },
       "Effect": "Allow",
-      "Resource": "arn:aws:s3:::<account-id>-apprepo/*",
+      "Resource": [
+        "arn:aws:s3:::<account-id>-apprepo/*/*/*/*.cab",
+        "arn:aws:s3:::<account-id>-apprepo/*/*/*/*.exe",
+        "arn:aws:s3:::<account-id>-apprepo/*/*/*/*.msi",
+        "arn:aws:s3:::<account-id>-apprepo/*/*/*/*.nupkg",
+        "arn:aws:s3:::<account-id>-apprepo/*/*/*/*.zip"
+      ],
       "Sid": "CreateNewArtifactsOnlyNeverOverwrite"
+    },
+    {
+      "Action": "s3:PutObject",
+      "Condition": {
+        "Null": {
+          "s3:if-none-match": "false"
+        },
+        "StringEquals": {
+          "aws:ResourceAccount": "<account-id>"
+        },
+        "StringEqualsIfExists": {
+          "s3:x-amz-storage-class": "STANDARD"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::<account-id>-apprepo/_catalog/releases/*",
+      "Sid": "CreateNewReleaseDocumentsOnlyNeverOverwrite"
     },
     {
       "Action": "s3:PutObject",
       "Condition": {
         "StringEquals": {
           "aws:ResourceAccount": "<account-id>"
+        },
+        "StringEqualsIfExists": {
+          "s3:x-amz-storage-class": "STANDARD"
         }
       },
       "Effect": "Allow",
@@ -29,6 +58,12 @@
       "Sid": "RewriteOnlyTheCatalogIndex"
     },
     {
+      "Action": "s3:PutObject",
+      "Effect": "Deny",
+      "Resource": "arn:aws:s3:::<account-id>-apprepo/~resources/*",
+      "Sid": "RefuseTheDeploymentScriptPrefixWhateverElseIsAllowed"
+    },
+    {
       "Action": "s3:GetObject",
       "Condition": {
         "StringEquals": {
@@ -36,14 +71,18 @@
         }
       },
       "Effect": "Allow",
-      "Resource": "arn:aws:s3:::<account-id>-apprepo/*",
+      "Resource": [
+        "arn:aws:s3:::<account-id>-apprepo/*/*/*/*.cab",
+        "arn:aws:s3:::<account-id>-apprepo/*/*/*/*.exe",
+        "arn:aws:s3:::<account-id>-apprepo/*/*/*/*.msi",
+        "arn:aws:s3:::<account-id>-apprepo/*/*/*/*.nupkg",
+        "arn:aws:s3:::<account-id>-apprepo/*/*/*/*.zip",
+        "arn:aws:s3:::<account-id>-apprepo/_catalog/*"
+      ],
       "Sid": "ReadBackWhatWasJustWritten"
     },
     {
-      "Action": [
-        "s3:ListBucket",
-        "s3:GetBucketLocation"
-      ],
+      "Action": "s3:ListBucket",
       "Condition": {
         "StringEquals": {
           "aws:ResourceAccount": "<account-id>"
@@ -52,17 +91,6 @@
       "Effect": "Allow",
       "Resource": "arn:aws:s3:::<account-id>-apprepo",
       "Sid": "InventoryTheRepositoryToBuildTheCatalog"
-    },
-    {
-      "Action": "s3:AbortMultipartUpload",
-      "Condition": {
-        "StringEquals": {
-          "aws:ResourceAccount": "<account-id>"
-        }
-      },
-      "Effect": "Allow",
-      "Resource": "arn:aws:s3:::<account-id>-apprepo/*",
-      "Sid": "AbortAStalledMultipartUpload"
     }
   ],
   "Version": "2012-10-17"

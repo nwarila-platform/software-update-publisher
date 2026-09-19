@@ -145,6 +145,7 @@ class UpstreamCandidate(FrozenContract):
     download_url: str
 
     vendor_digest: str | None = None
+    """A SHA-256 the vendor published, when it publishes one."""
 
     @field_validator("advertised_version")
     @classmethod
@@ -156,8 +157,6 @@ class UpstreamCandidate(FrozenContract):
         reaches a key.
         """
         return validate_version_component(value)
-
-    """A SHA-256 the vendor published, when it publishes one."""
 
 
 class ArtifactIdentity(FrozenContract):

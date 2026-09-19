@@ -7,4 +7,6 @@ exist before a publishing run can succeed, so it is recorded here.
 | Path | Holds |
 |---|---|
 | [`aws-iam/`](aws-iam/) | The role and policy the publisher runs with |
+| [`python-style-guide.md`](python-style-guide.md) | The rules this repository is written to |
+| [`tech-debt.md`](tech-debt.md) | What is owed, and what closing each item looks like |
 | [`template-sync-constraints.md`](template-sync-constraints.md) | Why the template-sync workflow's pull requests need a human before they can merge |

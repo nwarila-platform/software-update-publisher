@@ -2,9 +2,14 @@
 # File: '.gitignore'
 # --- [ Description ] ----------------------------------------------------------------------- #
 #
-# DEFAULT-DENY, EXPLICIT INCLUDES ONLY. Nothing in this working tree is tracked unless it is
-# allowed below, by name. Publishing a file is therefore a deliberate act rather than an
-# accident -- see docs/decision-records/org/0003-use-deny-all-gitignore-strategy.md.
+# DEFAULT-DENY. Nothing in this working tree is tracked unless it is allowed below, so
+# publishing a file is a deliberate act rather than an accident -- see
+# docs/decision-records/org/0003-use-deny-all-gitignore-strategy.md.
+#
+# Most entries name one path. Four name a subtree, and each says why where it appears:
+# .github/, tools/, src/+tests/, and docs/. A subtree allowance means a file dropped there is
+# published without a further edit, so the deny rules at the end of this file are what
+# actually stop an acquired artifact or a credential, not the allowlist.
 #
 # Entries are ROOTED with a leading '/' so an allow means one path, not every path that happens
 # to end the same way. Git does not descend into an excluded directory, so every directory on
@@ -22,7 +27,6 @@
 
 # --- [ allowed: repository configuration ] -------------------------------------------------- #
 !/pyproject.toml
-!/uv.lock
 !/.markdownlint-cli2.jsonc
 !/.pre-commit-config.yaml
 
@@ -30,11 +34,15 @@
 !/LICENSE
 !/README.md
 !/SECURITY.md
-!/CHANGELOG.md
 
 # --- [ allowed: GitHub and editor configuration ] ------------------------------------------- #
+# A subtree, because the template sync writes into .github/scripts/ with `git add -A`: a new
+# managed file that is not allowlisted is dropped silently rather than failing, so naming them
+# individually would make a sync quietly incomplete.
 !/.github/
 !/.github/**
+# The sync also delivers .vscode/settings.json, extensions.json and tasks.json. None is present
+# yet; the allowance is here so the first sync that brings them does not drop them.
 !/.vscode/
 !/.vscode/**
 
@@ -59,6 +67,10 @@
 !/tests/**
 
 # --- [ allowed: documentation ] ------------------------------------------------------------- #
+# A subtree. The exemplar enumerates its documentation instead, because working notes live
+# beside published pages on its disk. Nothing here does that today, and the Diataxis tree plus
+# the decision records would otherwise need an entry per file. If working notes ever land in
+# docs/, this becomes an enumeration.
 !/docs/
 !/docs/**
 
@@ -150,4 +162,3 @@ id_ed25519
 !/tests/fixtures/**/*.nupkg
 !/tests/fixtures/**/*.zip
 !/tests/fixtures/**/*.cab
-!/.env.example
